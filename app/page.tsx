@@ -1,14 +1,18 @@
 'use client'
 import { MiniKit, VerificationLevel } from '@worldcoin/minikit-js'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
   const [status, setStatus] = useState("A wild Pokémon appeared!")
+  const [pokemonId, setPokemonId] = useState(1)
+
+  // Picks a new Pokémon every time the page loads
+  useEffect(() => {
+    setPokemonId(Math.floor(Math.random() * 151) + 1)
+  }, [])
 
   const handleCatch = async () => {
-    // 1. Game Logic: 50% chance to catch
     const isCaught = Math.random() > 0.5
-    
     if (!isCaught) {
       setStatus("Oh no! The Pokémon fled. Try again!")
       return
@@ -16,34 +20,34 @@ export default function Home() {
 
     setStatus("You caught it! Verify to claim your Pokécoin...")
 
-    // 2. World ID Logic: Prove you are a human to get the coin
     if (!MiniKit.isInstalled()) {
       setStatus("Please open this in the World App")
       return
     }
 
-    const { finalPayload } = await MiniKit.commandsAsync.verify({
-      action: process.env.NEXT_PUBLIC_ACTION!, 
+    await MiniKit.commandsAsync.verify({
+      action: process.env.NEXT_PUBLIC_ACTION!,
       signal: "",
       verification_level: VerificationLevel.Orb,
     })
-
-    if (finalPayload.status === 'success') {
-      setStatus("GOTCHA! 1 Pokécoin added to your bag! 🪙")
-    } else {
-      setStatus("Verification failed. Try again!")
-    }
   }
 
   return (
-    <main style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '20px', backgroundColor: '#f0f0f0', fontFamily: 'sans-serif' }}>
-      <h1 style={{ color: '#333' }}>Daily Pokécoin</h1>
-      <div style={{ fontSize: '50px' }}>📦</div>
-      <p style={{ fontWeight: 'bold', color: '#555' }}>{status}</p>
+    <main className="flex flex-col items-center justify-center min-h-screen p-4">
+      <h1 className="text-2xl font-bold mb-4">Daily Pokécoin</h1>
       
+      {/* Dynamic Pokémon Image */}
+      <img 
+        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`}
+        alt="Wild Pokémon"
+        className="w-48 h-48 mb-4"
+      />
+
+      <p className="mb-6 text-center font-medium">{status}</p>
+
       <button 
         onClick={handleCatch}
-        style={{ backgroundColor: '#ff1f1f', color: 'white', padding: '15px 30px', border: 'none', borderRadius: '50px', fontSize: '20px', cursor: 'pointer', boxShadow: '0 4px #990000' }}
+        className="bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition-colors"
       >
         THROW POKÉBALL
       </button>
